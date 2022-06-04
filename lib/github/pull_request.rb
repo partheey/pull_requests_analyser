@@ -1,0 +1,2 @@
+class PullRequest < Base
+end
