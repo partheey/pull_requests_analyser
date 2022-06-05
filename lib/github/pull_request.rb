@@ -3,7 +3,7 @@ class PullRequest < Base
 
   def initialize(options = {})
     super
-    fetch_from_api_source('pulls', id)
+    # fetch_from_api_source('pulls', id)
   end
   
   def test_affection
@@ -18,7 +18,7 @@ class PullRequest < Base
   end
   
   def build_commits
-    @commits = retrieve_all_commits.map { |commit| Commit.new(id: commit['sha']) }
+    @commits = retrieve_all_commits.map { |commit_sha| Commit.new(id: commit_sha) }
   end
   
   def check_affection
@@ -56,8 +56,9 @@ class PullRequest < Base
   end
   
   def retrieve_all_commits
-    response = RestClient.get retrieved_object['commits_url']
-    JSON.parse response
+    commits_url = "https://github.com/rails/rails/pull/#{id}/commits"
+    response = RestClient.get commits_url
+    Nokogiri.parse(response).search('#commits_bucket li.Box-row').map { |elm| find_commit_id(elm) }
   end
   
   def generate_changes_history
@@ -66,5 +67,9 @@ class PullRequest < Base
       @changes_history += commit.find_changed_lines
     end
     @changes_history
+  end
+
+  def find_commit_id(node)
+    node.attr('data-url').split('/')[4]
   end
 end
