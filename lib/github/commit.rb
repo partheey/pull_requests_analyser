@@ -1,6 +1,6 @@
 class Commit < Base
   attr_accessor :files, :diffs
-  ChangedLine = Struct.new(:file_path, :commit_id, :diff_id, :removed_lines, :added_lines) do
+  ChangesInfo = Struct.new(:file_path, :commit_id, :diff_id, :added_lines, :removed_lines) do
     def all_changes
       (removed_lines.to_a + added_lines.to_a).uniq
     end
@@ -18,7 +18,7 @@ class Commit < Base
       diff_id = file.attr('id')
       added_lines = file.search('.blob-num-addition.js-linkable-line-number').map{|line| line.attributes['data-line-number'].value }
       removed_lines = file.search('.blob-num-deletion.js-linkable-line-number').map{|line| line.attributes['data-line-number'].value }
-      ChangedLine.new(title, self.id, diff_id, added_lines, removed_lines)
+      ChangesInfo.new(title, self.id, diff_id, added_lines, removed_lines)
     end
   end
   

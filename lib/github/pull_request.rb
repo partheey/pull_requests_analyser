@@ -3,7 +3,6 @@ class PullRequest < Base
 
   def initialize(options = {})
     super
-    # fetch_from_api_source('pulls', id)
   end
   
   def test_affection
@@ -23,29 +22,37 @@ class PullRequest < Base
   
   def check_affection
     files = find_affected_files
-    line_numbers = files.any? ? check_lines_match(files) : []
-    set_affected(files, line_numbers) if (files.any?  && line_numbers.any?)
+    affected_lines = files.any? ? find_affected_lines(files) : []
+    set_affected(affected_lines) if affected_lines.any?
   end
 
-  def check_lines_match(files)
-    lines = files.map { |file| file.all_changes }.flatten.tally.select { |k,v| v > 1 }
-    lines.keys
+  def find_affected_lines(files)
+    files.map do |file_path, changes| 
+      lines = changes.map(&:all_changes).flatten.tally.select { |k,v| v > 1 }.keys
+      lines.empty? ? nil : [file_path, lines, changes]
+    end.compact
   end
   
   def find_affected_files
     grouped_changes = @changes_history.group_by { |change| change.file_path }
     files_with_changes_in_more_commits = grouped_changes.select { |file, changes| changes.count > 1 }
-    files_with_changes_in_more_commits.values.flatten
+    files_with_changes_in_more_commits
+  end
+
+  def html_url
+    "#{HTML_HOST}/pull/#{id}"
   end
   
   private
 
-  def set_affected(files, lines)
+  def set_affected(affected_lines)
     @affected_line_urls = []
     is_affected = true
-    lines.each do |line|
-      files.each do |file|
-        @affected_line_urls << build_line_url(file, line) if file.all_changes.include?(line) 
+    affected_lines.each do |file_path, lines, changes|
+      lines.each do |line|
+        changes.each do |change|
+          @affected_line_urls << build_line_url(change, line)
+        end
       end
     end
   end
@@ -56,7 +63,7 @@ class PullRequest < Base
   end
   
   def retrieve_all_commits
-    commits_url = "https://github.com/rails/rails/pull/#{id}/commits"
+    commits_url = "#{HTML_HOST}/pull/#{id}/commits"
     response = RestClient.get commits_url
     Nokogiri.parse(response).search('#commits_bucket li.Box-row').map { |elm| find_commit_id(elm) }
   end
