@@ -47,7 +47,7 @@ class PullRequest < Base
 
   def set_affected(affected_lines)
     @affected_line_urls = []
-    is_affected = true
+    @is_affected = true
     affected_lines.each do |file_path, lines, changes|
       lines.each do |line|
         changes.each do |change|
