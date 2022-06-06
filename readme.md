@@ -12,9 +12,9 @@ affected by multiple commits. Please provide links to the specific rows as well
 
 ## Solution
 
-At first, all the open pull requests details are obtained via a public rest api request to github. Then each pull request is instantiated as PullRequest instance. This PullRequest instance retrieves the commits for this pull request. With the retrieved commit sha, the commit instance will generated for all retrieved commits. Then each commit will retrieve html page in which added_lines & removed_lines are obtained. 
+At first, all the open pull requests details are fetched via a public rest api request to github. Then each pull request is instantiated as PullRequest instance. This PullRequest instance retrieves all of its commits. With the retrieved commit info, the commit instance will generated for all retrieved commits. Then each commit will indentify the lines changed (ie, added_lines & removed_lines) from retrieved html for commit diff page.
 
-Based on these attributes{added_lines & removed_lines} the Changes Info is intiantiaed. Once all this is complete, the pull requet setups changes_history by checkins each commits. Using the changes_history, the repeated files_line-number across commits is identified.
+Based on these attributes{added_lines & removed_lines} the Changes Info is intiantiaed. Once all this is complete, the pull request generates changes_history by checking the change_info in every commit. Using the changes_history, the repeated files_line-number across commits is identified.
 
 Finally, The reults are printed to an new file - './result.txt'
 
